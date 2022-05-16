@@ -1,2 +1,2 @@
-# engage-rtc-app-react-native
+# engage-rtc-react-native-app
 React Native RTC application
