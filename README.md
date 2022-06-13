@@ -1,4 +1,4 @@
-# engage-rtc-react-native-app
+# engage-rtc-mobile-client-demo-app-reactnative
 React Native RTC application
 
 ## react-native-app installation Instructions:
