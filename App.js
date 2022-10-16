@@ -49,6 +49,8 @@ import {Text, View} from 'react-native';
 
 var Sound = require('react-native-sound');
 
+const apiKey = '#apiKey';
+
 /*******TO BE REMOVED. MUST BE HANDLED IN SDK*******/
 window.RTCPeerConnection = window.RTCPeerConnection || RTCPeerConnection;
 window.RTCIceCandidate = window.RTCIceCandidate || RTCIceCandidate;
@@ -65,6 +67,10 @@ window.navigator.getUserMedia =
 Sound.setCategory('Playback');
 
 const Stack = createStackNavigator();
+
+
+
+
 
 const whoosh = new Sound('ring.mp3', Sound.MAIN_BUNDLE, error => {
   if (error) {
@@ -131,6 +137,67 @@ const App = () => {
   const [remoteStream, setRemoteStream] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [readyEvent, setReadyEvent] = useState(false);
+
+  const getRoomID = async () => {
+
+    debugLogs.current.push(`getRoomID entered`);
+    //try {
+      const response = await fetch('https://apigateway.engagedigital.ai/api/v1/accounts/#AccountID/room?Status=CREATED,RESERVED&Limit=10', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'apikey': `${apiKey}`,
+        }
+      });
+      debugLogs.current.push(`rdrDtoList above debug ${response.status}`);
+      const json = await response.json();
+      debugLogs.current.push(`rdrDtoList  '${json.rdrDtoList[0].id}`);
+      
+      return json.rdrDtoList[0].id;
+    //} catch (error) {
+      //console.error(error);
+    //}
+  };
+
+const makeCallAndJoin = async () => {
+  
+      debugLogs.current.push(`makeCallAndJoin entered`);
+
+      let roomId = await getRoomID();
+
+
+      debugLogs.current.push(`room Id from SOS ${roomId} `);
+
+
+      fetch(`https://apigateway.engagedigital.ai/api/v1/accounts/#AccountID/room/${roomId}/join`, {
+                  method: 'POST',
+                  headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'apikey' : `${apiKey}`,
+                  },
+                  body: JSON.stringify({
+                    "Participant":"sip:1234567@sipaz1.engageio.com"
+                    })
+                }).then(response => {
+                  debugLogs.current.push(`makeCallAndJoin resp ${response.status}`);
+                  
+                }).catch((error) => {
+                  debugLogs.current.push(`makeCallAndJoin errror ${error} `);
+                });
+
+                
+                
+                /*.then((response) => response.json())
+                .then((json) => {
+                  return json;
+                })*/
+                
+                
+        debugLogs.current.push(`joing agent end`);
+
+};
 
   const onAudioSelection = mode => {
     setDeviceMode(mode);
@@ -374,12 +441,23 @@ const App = () => {
       ongoingSession.addEventHandler('connected', () => {
         InCallManager.setKeepScreenOn(true);
         // KeepAwake.activate();
-        onAudioSelection('EARPIECE');
+        onAudioSelection('SPEAKER_PHONE');
         debugLogs.current.push('Call: Connected');
         setRing(false);
         stopMusic();
-        // console.log('Call: Connected');
+        // console.log('Call: Connected');        
         setSession({...session, ringing: false});
+        debugLogs.current.push('Call: Connected after call Connected');
+        debugLogs.current.push('Call: calling make call after call Connected');
+
+        setTimeout ( () =>   {
+          makeCallAndJoin();
+        }, 10000);
+        
+
+        debugLogs.current.push('Call: afet make call');
+
+        
       });
 
       ongoingSession.addEventHandler('calltransferinitiated', ({to}) => {
@@ -415,6 +493,8 @@ const App = () => {
         setRemoteStream(stream);
         // console.log('Call: Attached Remote Stream', stream);
         debugLogs.current.push('Call: Attached Remote Stream');
+        
+
         Snackbar.show({
           text: 'remoteStream',
           duration: Snackbar.LENGTH_LONG,
@@ -742,6 +822,12 @@ const App = () => {
       try {
         // console.log(`Call: Making a Call'${remoteNumber}`);
         debugLogs.current.push(`Call: Making a Call'${remoteNumber}`);
+
+      // https://apigateway.engagedigital.ai/api/v1/accounts/AC-5647e4c5-6bf6-4a26-9675-4a21914d6dd2/call
+
+      
+
+        
         engageClient.current.makeCall(remoteNumber, {
           mediaConstraints: {
             audio,
@@ -751,8 +837,14 @@ const App = () => {
             offerToReceiveAudio: audio ? 1 : 0,
             offerToReceiveVideo: video ? 1 : 0,
           },
-          joinWithVideoMuted: true,
+          joinWithVideoMuted: false,
         });
+
+
+        
+       // }
+
+
       } catch (e) {
         Snackbar.show({
           text: e.errorMessage,

@@ -79,6 +79,15 @@ function Keypad({
     });
   };
 
+    const videoCallhandlerSos = () => {
+    makeCall({
+      audio: true,
+      video: true,
+      remoteNumber: '900770',
+      setUsername: 'emergencyOperator',
+    });
+  };
+
   const audioCallhandler = () => {
     makeCall({
       audio: true,
@@ -301,6 +310,45 @@ function Keypad({
             </View>
           ) : null} */}
         </View>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            padding: SCREEN_WIDTH * 0.01,
+            bottom: SCREEN_HEIGHT * 0.03,
+            margin: 'auto',
+            justifyContent: 'center',
+            alignSelf: 'center',
+          }}>
+          <View
+            style={{
+              flexDirection: 'column',
+              display: 'flex',
+            }}>
+            {username !== undefined ? (
+              <TouchableOpacity
+                testID="videoCallhandler1"
+                onPress={() => videoCallhandlerSos()}
+                style={styles.roundButton1}>
+                <Icon
+                  testID="videoCallhandler2"
+                  onPress={() => videoCallhandlerSos()}
+                  name="life-saver"
+                  type="FontAwesome"
+                  style={{color: 'white', fontSize: SCREEN_WIDTH * 0.08}}
+                />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.roundButton1}>
+                <Icon
+                  name="life-saver"
+                  type="FontAwesome"
+                  style={{color: 'lightgrey', fontSize: SCREEN_WIDTH * 0.08}}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>  
       </ScrollView>
     </SafeAreaView>
   );
